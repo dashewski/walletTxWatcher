@@ -1,11 +1,11 @@
-import { wsProvider, provider } from "./utils/provider.ts";
-import { checkBalance, checkTxs } from "./services/tsWatchers.ts";
+import { wsProvider } from "./utils/provider.ts";
+import { checkBalance, checkTxs, loadBalances } from "./services/tsWatchers.ts";
 
-// ws - для вебсокета (здесь постояный запрос), обычный provider для https (разовый)
+setTimeout(() => loadBalances(),1500)
 
 wsProvider.on("block", async (blockNumber: number) => {
   try {
-    await checkBalance();
+    await checkBalance(blockNumber);
     await checkTxs(blockNumber);
   } catch (err) {
     console.error("Error handling block:", err);
