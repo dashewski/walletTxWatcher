@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "ES2022",                  // на какой стандарт JS компилировать
+      "module": "ESNext",                  // используем ESM
+      "moduleResolution": "node",          // резолв модулей по node-стандарту
+      "esModuleInterop": true,             // для нормальной работы с CommonJS пакетами
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,                      // строгая типизация
+      "skipLibCheck": true,                // пропуск проверки типов библиотек
+      "outDir": "./dist",                  // куда компилировать JS (если будешь билдить)
+      "allowImportingTsExtensions": true   // важно для прямого импорта *.ts файлов в ts-node
+    },
+    "include": ["scr/**/*.ts"]             // какие файлы компилировать
+  }

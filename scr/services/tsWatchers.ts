@@ -1,11 +1,7 @@
 import { provider, addresses } from "../utils/provider.ts";
 import { ethers } from "ethers";
 import { txDetected } from "../utils/logger.ts";
-
-interface Wallet {
-  address: string;
-  balance: bigint;
-}
+import type { Wallet } from "../types/types.ts";
 
 let wallets: Wallet[] = [];
 
@@ -17,7 +13,6 @@ export async function loadBalances(): Promise<Wallet[]> {
       console.log(
         `Watching for: ${addr}, his balance: ${ethers.formatEther(bal)} ETH`
       );
-
       return {
         address: addr,
         balance: bal,
@@ -34,13 +29,15 @@ export async function checkBalance(blockNumber: number): Promise<void> {
     try {
       const currentBalance = await provider.getBalance(wallet.address);
       if (wallet.balance === currentBalance) {
-        console.log(`New block ${blockNumber}. Address: ${wallet.address}, nothing changed`);
+        console.log(
+          `New block ${blockNumber}. Address: ${wallet.address}, nothing changed`
+        );
       } else {
         wallet.balance = currentBalance;
         console.log(
-          `New block ${blockNumber}. Address: ${wallet.address}, balance changed: ${ethers.formatEther(
-            wallet.balance
-          )}`
+          `New block ${blockNumber}. Address: ${
+            wallet.address
+          }, balance changed: ${ethers.formatEther(wallet.balance)}`
         );
       }
     } catch (error) {
