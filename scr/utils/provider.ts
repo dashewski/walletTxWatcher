@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import { ethers } from "ethers";
 
-dotenv.config();
+dotenv.config({ path: "../.env" });
+
 export const wsProvider = new ethers.WebSocketProvider(
   `wss://sepolia.infura.io/ws/v3/${process.env.INFURA_API_KEY}`
 );

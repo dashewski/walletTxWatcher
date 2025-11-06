@@ -8,6 +8,6 @@ export interface TxData {
     hash: string;
     from: string;
     to: string | null;
-    valueEth: number;
+    valueEth: bigint;
     timestamp: string;
   }
