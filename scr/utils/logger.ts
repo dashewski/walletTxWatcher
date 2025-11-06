@@ -4,7 +4,7 @@ import { log } from "./logStyler.ts";
 import { ethers } from "ethers";
 
 export function txDetected(tx: TxData) {
-  const valueEth = Number(ethers.formatEther(tx.valueEth ?? 0n)); // безопасно
+  const valueEth = Number(ethers.formatEther(tx.valueEth ?? 0n)); 
   const timestamp = tx.timestamp ?? new Date().toISOString();
 
   log.fromTo(tx.from, tx.to ?? "null");
