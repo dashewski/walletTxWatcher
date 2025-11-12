@@ -8,7 +8,7 @@ export const log = {
     fromTo: (to: string, from: string) =>
       console.log(chalk.cyan(`[SENDING] from ${from} => to ${to}`)),
     balanceChange: (addr: string, bal: bigint | string) =>
-      console.log(chalk.yellow(`[BALANCE] ${addr} → ${bal} ETH`)),
+      console.log(chalk.yellow(`[BALANCE CHANGED] ${addr} → ${bal} ETH`)),
     tx: (hash: string, value: string) =>
       console.log(chalk.green(`[TX] ${hash.slice(0, 10)}... (${value} ETH)`)),
     error: (err: Error) =>

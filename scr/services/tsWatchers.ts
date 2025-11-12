@@ -1,12 +1,15 @@
 import { provider, addresses } from "../utils/provider.ts";
 import { ethers } from "ethers";
-import { txDetected } from "../utils/logger.ts";
 import type { Wallet } from "../types/types.ts";
 import { log } from "../utils/logStyler.ts";
 import chalk from "chalk";
-import type { TxData } from "../types/types.ts";
+import fs from "fs";
+import type { Token } from "../types/types.ts";
 
 let wallets: Wallet[] = [];
+const tokenList: Token[] = JSON.parse(
+  fs.readFileSync("tokenList.json", "utf-8")
+);
 
 //starting with timeout of 1500ms in monitor.ts
 export async function loadBalances(): Promise<Wallet[]> {
@@ -30,26 +33,28 @@ export async function loadBalances(): Promise<Wallet[]> {
 
 //starting with every new block in monitor.ts
 export async function checkBalance(blockNumber: number): Promise<void> {
+  console.log(chalk.yellowBright(`Processing...new block ${blockNumber}`));
+
   for (const wallet of wallets) {
     try {
       const currentBalance = await provider.getBalance(wallet.address);
-      if (wallet.balance === currentBalance) {
-        console.log(
-          chalk.cyan(
-            `New block ${blockNumber} without important info`
-          )
-        );
-      } else {
+      if (wallet.balance != currentBalance) {
+        const balanceInEth = ethers.formatEther(currentBalance);
         wallet.balance = currentBalance;
         log.block(blockNumber);
-        log.balanceChange(wallet.address, wallet.balance)
+        log.balanceChange(wallet.address, balanceInEth);
+      } else {
+        console.log(
+          chalk.bgBlackBright(`Nothing changed for ${wallet.address}`)
+        );
       }
     } catch (error) {
       console.error("Error checking balance:", error);
-    }}
+    }
+  }
 }
 
-//starting with every new block in monitor.ts
+//starting with every new block in monitor.ts, check all txs, and special token transfers with watched tokens
 export async function checkTxs(blockNumber: number): Promise<void> {
   try {
     const block = await provider.getBlock(blockNumber, true);
@@ -58,16 +63,33 @@ export async function checkTxs(blockNumber: number): Promise<void> {
       const txsWatched = block.prefetchedTransactions.filter(
         (tx) => tx.from === wallet.address || tx.to === wallet.address
       );
-      txsWatched.forEach((tx) => {
-        const txData: TxData = {
-          hash: tx.hash,
-          from: tx.from,
-          to: tx.to,
-          valueEth: tx.value,
-          timestamp: new Date().toISOString(),
-        };
-        txDetected(txData);
-      });
+      for (const tx of txsWatched) {
+        const receipt = await provider.getTransactionReceipt(tx.hash);
+        if (receipt !== null) {
+          for (const logEvent of receipt.logs) {
+            const token = tokenList.find(
+              (t) => t.contract.toLowerCase() === logEvent.address.toLowerCase()
+            );
+            if (!token) continue;
+            if (
+              logEvent.topics[0] !==
+              ethers.id("Transfer(address,address,uint256)")
+            )
+              continue;
+            const iface = new ethers.Interface([
+              "event Transfer(address indexed from, address indexed to, uint256 value)",
+            ]);
+
+            const parsed = iface.parseLog(logEvent);
+            if (parsed !== null) {
+              const from = parsed.args.from.toLowerCase();
+              const to = parsed.args.to.toLowerCase();
+              const value = Number(parsed.args.value) / 10 ** token.decimals;
+              console.log(`💸 [${token.symbol}] ${value} from ${from} to ${to}`);
+            }
+          }
+        }
+      }
     }
   } catch (error) {
     console.error(error);

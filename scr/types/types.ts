@@ -11,3 +11,10 @@ export interface TxData {
     valueEth: bigint;
     timestamp: string;
   }
+
+export interface Token {
+  contract: string,
+  symbol: string,
+  decimals: number;
+}
+
